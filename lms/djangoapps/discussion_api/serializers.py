@@ -80,7 +80,7 @@ class _ContentSerializer(serializers.Serializer):
     vote_count = serializers.SerializerMethodField("get_vote_count")
     editable_fields = serializers.SerializerMethodField("get_editable_fields")
 
-    non_updatable_fields = ()
+    non_updatable_fields = set()
 
     def __init__(self, *args, **kwargs):
         super(_ContentSerializer, self).__init__(*args, **kwargs)

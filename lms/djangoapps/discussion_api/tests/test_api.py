@@ -1284,11 +1284,20 @@ class CreateThreadTest(CommentsServiceMockMixin, UrlResetMixin, ModuleStoreTestC
             ],
             [True, False],
             [True, False],
-            ["no_group", "group_none", "group_set"],
+            ["no_group_set", "group_is_none", "group_is_set"],
         )
     )
     @ddt.unpack
     def test_group_id(self, role_name, course_is_cohorted, topic_is_cohorted, data_group_state):
+        """
+        Tests whether the user has permission to create a thread with certain
+        group_id values.
+
+        If there is no group, user cannot create a thread.
+        Else if group is None or set, and the course is not cohorted and/or the
+        role is a student, user can create a thread.
+        """
+
         cohort_course = CourseFactory.create(
             discussion_topics={"Test Topic": {"id": "test_topic"}},
             cohort_config={
@@ -1297,27 +1306,31 @@ class CreateThreadTest(CommentsServiceMockMixin, UrlResetMixin, ModuleStoreTestC
             }
         )
         CourseEnrollmentFactory.create(user=self.user, course_id=cohort_course.id)
-        cohort = CohortFactory.create(course_id=cohort_course.id, users=[self.user])
+        if course_is_cohorted:
+            cohort = CohortFactory.create(course_id=cohort_course.id, users=[self.user])
         role = Role.objects.create(name=role_name, course_id=cohort_course.id)
         role.users = [self.user]
         self.register_post_thread_response({})
         data = self.minimal_data.copy()
         data["course_id"] = unicode(cohort_course.id)
-        if data_group_state == "group_none":
+        if data_group_state == "group_is_none":
             data["group_id"] = None
-        elif data_group_state == "group_set":
-            data["group_id"] = cohort.id + 1
+        elif data_group_state == "group_is_set":
+            if course_is_cohorted:
+                data["group_id"] = cohort.id + 1
+            else:
+                data["group_id"] = 1  # Set to any value since there is no cohort
         expected_error = (
-            data_group_state in ["group_none", "group_set"] and
+            data_group_state in ["group_is_none", "group_is_set"] and
             (not course_is_cohorted or role_name == FORUM_ROLE_STUDENT)
         )
         try:
             create_thread(self.request, data)
             self.assertFalse(expected_error)
             actual_post_data = httpretty.last_request().parsed_body
-            if data_group_state == "group_set":
+            if data_group_state == "group_is_set":
                 self.assertEqual(actual_post_data["group_id"], [str(data["group_id"])])
-            elif data_group_state == "no_group" and course_is_cohorted and topic_is_cohorted:
+            elif data_group_state == "no_group_set" and course_is_cohorted and topic_is_cohorted:
                 self.assertEqual(actual_post_data["group_id"], [str(cohort.id)])
             else:
                 self.assertNotIn("group_id", actual_post_data)

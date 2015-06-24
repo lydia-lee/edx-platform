@@ -267,6 +267,7 @@ class MicrositeCertificatesViewsTests(ModuleStoreTestCase):
         ]
 
         self.course.certificates = {'certificates': certificates}
+        self.course.cert_html_view_enabled = True
         self.course.save()
         self.store.update_item(self.course, self.user.id)
 
@@ -422,6 +423,7 @@ class CertificatesViewsTests(ModuleStoreTestCase, EventTrackingTestCase):
         ]
 
         self.course.certificates = {'certificates': certificates}
+        self.course.cert_html_view_enabled = True
         self.course.save()
         self.store.update_item(self.course, self.user.id)
 
@@ -483,6 +485,7 @@ class CertificatesViewsTests(ModuleStoreTestCase, EventTrackingTestCase):
             }
         ]
         self.course.certificates = {'certificates': test_certificates}
+        self.course.cert_html_view_enabled = True
         self.course.save()
         self.store.update_item(self.course, self.user.id)
         response = self.client.get(test_url)
@@ -506,6 +509,7 @@ class CertificatesViewsTests(ModuleStoreTestCase, EventTrackingTestCase):
             }
         ]
         self.course.certificates = {'certificates': test_certificates}
+        self.course.cert_html_view_enabled = True
         self.course.save()
         self.store.update_item(self.course, self.user.id)
         response = self.client.get(test_url)
@@ -640,6 +644,7 @@ class CertificatesViewsTests(ModuleStoreTestCase, EventTrackingTestCase):
 
     @override_settings(FEATURES=FEATURES_WITH_CERTS_ENABLED)
     def test_evidence_event_sent(self):
+        self._add_course_certificates(count=1, signatory_count=2)
         cert_url = get_certificate_url(
             user_id=self.user.id,
             course_id=self.course_id,

@@ -42,14 +42,14 @@ class CourseStructureApiTests(ModuleStoreTestCase):
             parent_location=self.vertical.location, category="html", display_name="My HTML"
         )
 
-    @classmethod
-    def tearDownClass(cls):
+        self.addCleanup(self._disconnect_course_published_event)
+
+    def _disconnect_course_published_event(self):
         """
         Disconnect course_published event.
         """
         # If we don't disconnect then tests are getting failed in test_crud.py
         SignalHandler.course_published.disconnect(listen_for_course_publish)
-        super(CourseStructureApiTests, cls).tearDownClass()
 
     def _expected_blocks(self, block_types=None, get_parent=False):
         """
@@ -134,3 +134,16 @@ class CourseStructureApiTests(ModuleStoreTestCase):
         with mock.patch(self.MOCK_CACHE, cache.get_cache(backend='default')):
             with self.assertNumQueries(2):
                 course_structure(self.course.id, block_types=block_types)
+
+    def test_course_structure_with_non_existed_block_types(self):
+        """
+        Verify that course_structure returns empty info for non-existed block_types.
+        """
+        block_types = ['phantom']
+        structure = course_structure(self.course.id, block_types=block_types)
+        expected = {
+            u'root': unicode(self.course.location),
+            u'blocks': {}
+        }
+
+        self.assertDictEqual(structure, expected)

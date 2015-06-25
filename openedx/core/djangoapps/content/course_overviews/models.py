@@ -11,6 +11,7 @@ from django.utils.translation import ugettext
 from util.date_utils import strftime_localized
 from xmodule import course_metadata_utils
 from xmodule.course_module import CourseDescriptor
+from xmodule.error_module import ErrorDescriptor
 from xmodule.modulestore.django import modulestore
 from xmodule_django.models import CourseKeyField, UsageKeyField
 
@@ -120,6 +121,12 @@ class CourseOverview(django.db.models.Model):
         Returns:
             CourseOverview: overview of the requested course. If loading course
             from the module store failed, returns None.
+
+        Raises:
+            - CourseOverview.DoesNotExist if the course specified by course_id
+                was not found.
+            - IOError if some other error occurs while trying to load the
+                course from the module store.
         """
         course_overview = None
         try:
@@ -131,10 +138,11 @@ class CourseOverview(django.db.models.Model):
                 if isinstance(course, CourseDescriptor):
                     course_overview = CourseOverview._create_from_course(course)
                     course_overview.save()
+                elif course is not None:
+                    error_string = course.error_msg if isinstance(course, ErrorDescriptor) else str(course)
+                    raise IOError("Error while loading course from module store: " + error_string)
                 else:
-                    # TODO me: Figure out how to handle get_course returning ErrorDescriptor.
-                    # TODO me: After doing ^, update all calls to get_from_id.
-                    return None
+                    raise CourseOverview.DoesNotExist()
         return course_overview
 
     def clean_id(self, padding_char='='):

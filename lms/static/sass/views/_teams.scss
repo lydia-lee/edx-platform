@@ -334,7 +334,11 @@
     }
 
     &.is-unavailable {
+      background-color: $gray-l5;
 
+      .wrapper-card-meta {
+        background-color: $gray-l4;
+      }
     }
   }
 

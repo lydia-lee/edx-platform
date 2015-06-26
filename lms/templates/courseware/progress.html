@@ -120,8 +120,8 @@ from django.utils.http import urlquote_plus
                 %endif
                 <button class="credit-help"><i class="fa fa-question"></i><span class="sr">Help regarding credit requirement</span></button><br>
                 <div class="requirement-container" data-eligible="${credit_course_requirements['eligibility_status']}">
-                %for namespace in credit_course_requirements['requirements']:
-                    %for requirement in credit_course_requirements['requirements'][namespace]:
+                %for order in credit_course_requirements['requirements']:
+                    %for requirement in credit_course_requirements['requirements'][order]:
                         <div class="requirement">
                             <div class="requirement-name">${_(requirement['display_name'])}</div>
                             <div class="requirement-status">

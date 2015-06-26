@@ -142,6 +142,7 @@ class CreditRequirement(TimeStampedModel):
     namespace = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     display_name = models.CharField(max_length=255, default="")
+    order = models.PositiveIntegerField(default=0)
     criteria = JSONField()
     active = models.BooleanField(default=True)
 
@@ -171,12 +172,14 @@ class CreditRequirement(TimeStampedModel):
             defaults={
                 "display_name": requirement["display_name"],
                 "criteria": requirement["criteria"],
+                "order": requirement["order"],
                 "active": True
             }
         )
         if not created:
             credit_requirement.criteria = requirement["criteria"]
             credit_requirement.active = True
+            credit_requirement.order = requirement["order"]
             credit_requirement.save()
 
         return credit_requirement, created

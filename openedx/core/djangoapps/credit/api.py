@@ -55,18 +55,21 @@ def set_credit_requirements(course_key, requirements):
                         "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                         "display_name": "Assessment 1",
                         "criteria": {},
+                        "order": 1,
                     },
                     {
                         "namespace": "proctored_exam",
                         "name": "i4x://edX/DemoX/proctoring-block/final_uuid",
                         "display_name": "Final Exam",
                         "criteria": {},
+                        "order": 2,
                     },
                     {
                         "namespace": "grade",
                         "name": "grade",
                         "display_name": "Grade",
                         "criteria": {"min_grade": 0.8},
+                        "order": 0,
                     },
                 ])
 
@@ -113,18 +116,21 @@ def get_credit_requirements(course_key, namespace=None):
                         "namespace": "reverification",
                         "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                         "display_name": "Assessment 1",
+                        "order": 1,
                         "criteria": {},
                     },
                     {
                         "namespace": "proctored_exam",
                         "name": "i4x://edX/DemoX/proctoring-block/final_uuid",
                         "display_name": "Final Exam",
+                        "order": 2,
                         "criteria": {},
                     },
                     {
                         "namespace": "grade",
                         "name": "grade",
                         "display_name": "Grade",
+                        "order": 0,
                         "criteria": {"min_grade": 0.8},
                     },
                 ]
@@ -141,6 +147,7 @@ def get_credit_requirements(course_key, namespace=None):
             "namespace": requirement.namespace,
             "name": requirement.name,
             "display_name": requirement.display_name,
+            "order": requirement.order,
             "criteria": requirement.criteria
         }
         for requirement in requirements
@@ -425,22 +432,28 @@ def get_credit_requirement_status(course_key, username, namespace=None, name=Non
                         "namespace": "reverification",
                         "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                         "display_name": "In Course Reverification",
+                        "order": 1,
                         "criteria": {},
                         "status": "failed",
+                        "status_date": "2015-06-26 07:49:13",
                     },
                     {
                         "namespace": "proctored_exam",
                         "name": "i4x://edX/DemoX/proctoring-block/final_uuid",
                         "display_name": "Proctored Mid Term Exam",
+                        "order": 2,
                         "criteria": {},
                         "status": "satisfied",
+                        "status_date": "2015-06-26 11:07:42",
                     },
                     {
                         "namespace": "grade",
                         "name": "i4x://edX/DemoX/proctoring-block/final_uuid",
                         "display_name": "Minimum Passing Grade",
+                        "order": 0,
                         "criteria": {"min_grade": 0.8},
                         "status": "failed",
+                        "status_date": "2015-06-26 11:07:44",
                     },
                 ]
 
@@ -457,6 +470,7 @@ def get_credit_requirement_status(course_key, username, namespace=None, name=Non
             "namespace": requirement.namespace,
             "name": requirement.name,
             "display_name": requirement.display_name,
+            "order": requirement.order,
             "criteria": requirement.criteria,
             "status": requirement_status.status if requirement_status else None,
             "status_date": requirement_status.modified if requirement_status else None,

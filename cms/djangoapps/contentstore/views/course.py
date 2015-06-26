@@ -32,7 +32,7 @@ from xmodule.modulestore import EdxJSONEncoder
 from xmodule.modulestore.exceptions import ItemNotFoundError, DuplicateCourseError
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.locations import Location
-from opaque_keys.edx.keys import CourseKey, UsageKey
+from opaque_keys.edx.keys import CourseKey
 
 from django.views.decorators.csrf import ensure_csrf_cookie
 from contentstore.course_info_model import get_course_updates, update_course_updates, delete_course_update
@@ -503,16 +503,9 @@ def _deprecated_blocks_info(course_module, deprecated_block_types):
     except errors.CourseStructureNotAvailableError:
         return data
 
-    store = modulestore()
     blocks = []
     for block in structure_data['blocks'].values():
-        try:
-            item = store.get_item(UsageKey.from_string(block['parent']))
-        except ItemNotFoundError:
-            pass
-        else:
-            if store.has_published_version(item):
-                blocks.append([reverse_usage_url('container_handler', block['parent']), block['display_name']])
+        blocks.append([reverse_usage_url('container_handler', block['parent']), block['display_name']])
 
     data['blocks'].extend(blocks)
 

@@ -9,6 +9,11 @@
     }
   }
 
+  p, span {
+    color: inherit;
+    font-weight: inherit;
+  }
+
   .icon {
     font-family: "FontAwesome";
     color: inherit;
@@ -83,7 +88,7 @@
     }
 
     .search-field {
-        transition: all .25s ease-in-out;
+        transition: all $tmg-f2 ease-in-out;
         border: 0;
         border-bottom: 2px solid transparent;
         padding: ($baseline/4) ($baseline/2);
@@ -106,6 +111,7 @@
           color: $gray-l3;
       }
 
+      // STATE: hover and focus
       &:hover,
       &:focus {
 
@@ -137,6 +143,7 @@
             color: $gray-d2;
         }
 
+        // STATE: hover and focus
         &:hover,
         &:focus {
             border-bottom: 3px solid $link-color;
@@ -149,18 +156,26 @@
     @extend %t-weight4;
   }
 
-  .search-tools {
+  .listing-tools {
     @extend %t-copy-sub1;
     margin: ($baseline/10) $baseline;
     color: $gray-l1;
 
-    p, span { // override
+    label { // override
       color: inherit;
+      font-size: inherit;
+    }
+
+    .listing-sort-select {
+      @extend %t-copy-sub1;
+      @extend %t-regular;
+      border: 0;
     }
   }
 
   .card {
-    @extend .clearfix;
+    @include clearfix();
+    transition: all $tmg-f2 ease-in-out;
     position: relative;
     display: inline-block;
     width: 30%;
@@ -168,32 +183,35 @@
     border: 1px solid $gray-l4;
     border-bottom: 2px solid $gray-l3;
     border-radius: 3px;
-    background-color: $gray-l5;
+    background-color: $white;
     color: $black;
 
+    // STATE: hover, active, and focus
     &:hover,
     &:active,
     &:focus {
+      box-shadow: 0 0 5px 1px $m-blue-t1;
 
-      .card-core-wrapper {
-        background-color: $white;
-      }
-
-      .card-meta-wrapper {
-        background-color: $gray-l5;
+      .card-description {
+        color: $base-font-color;
       }
     }
 
-    .card-core-wrapper {
-      @extend .clearfix;
-      transition: all .25s ease-in-out;
+    .wrapper-card-core {
+      @include clearfix();
       padding: ($baseline);
+    }
+
+    .card-type {
+      @extend %t-copy-sub2;
+      text-transform: uppercase;
+      color: $gray;
     }
 
     .card-title {
       @extend %t-title5;
       @extend %t-strong;
-      margin-bottom: .5em;
+      margin-bottom: rem(.5);
     }
 
     .card-description {
@@ -202,6 +220,7 @@
     }
 
     .card-actions {
+      @include clearfix();
 
       .action-view {
         @extend %btn-pl-default-base;
@@ -210,16 +229,14 @@
       }
     }
 
-    .card-meta-wrapper {
-      @extend .clearfix;
+    .wrapper-card-meta {
+      @include clearfix();
       @extend %t-copy-sub1;
-      transition: all .25s ease-in-out;
       padding: ($baseline/2) $baseline;
-      background-color: $gray-l4;
+      background-color: $gray-l5;
       color: $gray;
 
       .meta-detail {
-        @extend %t-strong;
         margin-top: ($baseline/4);
         margin-right: ($baseline*.75);
         color: $gray;
@@ -229,18 +246,18 @@
         }
       }
 
-      p, span { // override
-        color: inherit;
-        font-weight: inherit;
-      }
-
-      .member-thumbs {
+      .list-member-thumbs {
+        @extend %ui-no-list;
         display: inline-block;
         vertical-align: text-bottom;
 
+        .item-member-thumb {
+          display: inline-block;
+        }
+
         img {
-          width: 20px;
-          height: 20px;
+          width: $baseline;
+          height: $baseline;
           margin: 0 ($baseline/4);
         }
       }
@@ -249,14 +266,14 @@
     &.square-card {
 
       .card-description {
-        height: ($baseline*4);
+        height: 4rem;
         overflow: hidden;
       }
 
-      .card-meta-wrapper {
+      .wrapper-card-meta {
 
         &.has-actions {
-          .card-meta-details,
+          .card-meta,
           .card-actions {
             display: inline-block;
             width: 48%;
@@ -269,12 +286,6 @@
     &.list-card {
       width: auto;
       display: block;
-      box-shadow: 0 2px 3px $shadow-l1;
-      background-color: $white;
-
-      .card-core-wrapper {
-        @extend %vertical-aligner;
-      }
 
       .card-core {
         display: inline-block;
@@ -282,23 +293,12 @@
         width: 84%;
       }
 
-      .card-meta-wrapper {
-        background-color: $m-blue;
-        color: $white;
-      }
-
-      .card-meta-details {
-        margin-bottom: ($baseline/2);
+      .card-meta {
+        @include clearfix();
       }
 
       .meta-detail {
         display: inline-block;
-        color: $white;
-      }
-
-      p, span { // override
-        color: inherit;
-        font-weight: inherit;
       }
 
       .team-activity {
@@ -310,16 +310,11 @@
         vertical-align: middle;
         width: 15%;
       }
-
-      .action-view {
-        @extend %btn-pl-primary-base;
-        float: none;
-      }
     }
 
     &.has-pennant {
 
-      .card-core-wrapper {
+      .wrapper-card-core {
         padding-top: ($baseline*2);
       }
 
@@ -376,7 +371,7 @@
 
         .input-text {
             @extend %t-copy-base;
-            @include transition(all $tmg-f2 ease-in-out 0s);
+            transition: all $tmg-f2 ease-in-out 0s;
             display: block;
             width: 90%;
             height: 100%;
@@ -446,6 +441,7 @@
       border: 1px solid transparent;
       color: $gray;
 
+      // STATE: hover and focus
       &:hover,
       &:focus {
           border: 1px solid $link-color;

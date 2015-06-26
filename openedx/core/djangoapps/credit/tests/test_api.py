@@ -138,7 +138,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             },
             {
                 "namespace": "grade",
@@ -146,7 +147,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.9
-                }
+                },
+                "order": 1,
             }
         ]
         api.set_credit_requirements(self.course_key, requirements)
@@ -161,7 +163,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "namespace": "reverification",
                 "name": "midterm",
                 "display_name": "Midterm",
-                "criteria": {}
+                "criteria": {},
+                "order": 1,
             },
             {
                 "namespace": "grade",
@@ -169,7 +172,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             }
         ]
         api.set_credit_requirements(self.course_key, requirements)
@@ -191,7 +195,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             }
         ]
         api.set_credit_requirements(self.course_key, requirements)
@@ -202,7 +207,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "namespace": "reverification",
                 "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                 "display_name": "Assessment 1",
-                "criteria": {}
+                "criteria": {},
+                "order": 1,
             }
         ]
         api.set_credit_requirements(self.course_key, requirements)
@@ -232,7 +238,8 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             }
         ]
         requirement = api.get_credit_requirement(self.course_key, "grade", "grade")
@@ -261,13 +268,15 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             },
             {
                 "namespace": "reverification",
                 "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                 "display_name": "Assessment 1",
-                "criteria": {}
+                "criteria": {},
+                "order": 1,
             }
         ]
 
@@ -299,13 +308,15 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             },
             {
                 "namespace": "reverification",
                 "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                 "display_name": "Assessment 1",
-                "criteria": {}
+                "criteria": {},
+                "order": 1,
             }
         ]
         api.set_credit_requirements(self.course_key, requirements)
@@ -366,13 +377,15 @@ class CreditRequirementApiTests(CreditApiTestBase):
                 "display_name": "Grade",
                 "criteria": {
                     "min_grade": 0.8
-                }
+                },
+                "order": 1,
             },
             {
                 "namespace": "reverification",
                 "name": "i4x://edX/DemoX/edx-reverification-block/assessment_uuid",
                 "display_name": "Assessment 1",
-                "criteria": {}
+                "criteria": {},
+                "order": 1,
             }
         ]
         api.set_credit_requirements(self.course_key, requirements)

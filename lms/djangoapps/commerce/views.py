@@ -16,6 +16,7 @@ from commerce import ecommerce_api_client
 from commerce.constants import Messages
 from commerce.exceptions import InvalidResponseError
 from commerce.http import DetailResponse, InternalRequestErrorResponse
+from commerce.utils import audit_log
 from course_modes.models import CourseMode
 from courseware import courses
 from edxmako.shortcuts import render_to_response
@@ -121,12 +122,20 @@ class BasketsView(APIView):
                 'checkout': True,
             })
 
+            audit_log(
+                'checkout_requested',
+                course_id=course_id,
+                mode=CourseMode.HONOR,
+                processor_name=None,
+                user_id=user.id
+            )
+
             payment_data = response_data["payment_data"]
             if payment_data:
                 # Pass data to the client to begin the payment flow.
                 return JsonResponse(payment_data)
             elif response_data['order']:
-                # The order was completed immediately because there isno charge.
+                # The order was completed immediately because there is no charge.
                 msg = Messages.ORDER_COMPLETED.format(order_number=response_data['order']['number'])
                 log.debug(msg)
                 return DetailResponse(msg)

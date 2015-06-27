@@ -14,26 +14,15 @@ You can also generate the assets explicitly and then run Studio:
   paver devstack studio --settings=devstack_optimized --fast
 
 Note that changes to JavaScript assets will not be picked up automatically
-as they are for devstack. Instead, update_assets must be invoked each time
-that changes have been made.
+as they are for non-optimized devstack. Instead, update_assets must be
+invoked each time that changes have been made.
 """
-
-# We intentionally define lots of variables that aren't used, and
-# want to import all variables from base settings files
-# pylint: disable=wildcard-import, unused-wildcard-import
-
-# Pylint gets confused by path.py instances, which report themselves as class
-# objects. As a result, pylint applies the wrong regex in validating names,
-# and throws spurious errors. Therefore, we disable invalid-name checking.
-# pylint: disable=invalid-name, no-name-in-module
-
-from path import path
 
 ########################## Devstack settings ###################################
 
 from .devstack import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-TEST_ROOT = path(__file__).abspath().dirname().dirname().dirname() / "test_root"  # pylint: disable=no-value-for-parameter
+TEST_ROOT = REPO_ROOT / "test_root"  # pylint: disable=no-value-for-parameter
 
 ############################ STATIC FILES #############################
 
@@ -47,5 +36,5 @@ STATICFILES_FINDERS = (
     'staticfiles.finders.FileSystemFinder',
 )
 STATICFILES_DIRS = (
-    (TEST_ROOT / "staticfiles").abspath(),
+    (TEST_ROOT / "staticfiles" / "cms").abspath(),
 )

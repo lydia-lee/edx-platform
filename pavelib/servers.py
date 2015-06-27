@@ -2,24 +2,28 @@
 Run and manage servers for local development.
 """
 from __future__ import print_function
-import sys
 import argparse
 from paver.easy import *
+
+from .assets import collect_assets
 from .utils.cmd import django_cmd
 from .utils.process import run_process, run_multi_processes
 
 
 DEFAULT_PORT = {"lms": 8000, "studio": 8001}
 DEFAULT_SETTINGS = 'devstack'
+OPTIMIZED_SETTINGS = "devstack_optimized"
+OPTIMIZED_ASSETS_SETTINGS = "test_static_optimized"
 
 
-def run_server(system, settings=None, asset_settings=None, collect_static=False, port=None, contracts=False):
+def run_server(system, settings=None, asset_settings=None, collect_static=False, port=None, no_contracts=False):
     """
     Start the server for the specified `system` (lms or studio).
     `settings` is the Django settings module to use; if not provided, use the default.
     `collect_static` defaults to False, but if True then static files will be collected.
     `asset_settings` is the settings to use when generating assets; if not provided, assets are not generated.
     `port` is the port to run the server on; if not provided, use the default port for the system.
+    `no_contracts` is true if contracts are not to be enabled. The default is to include contracts.
     """
     if system not in ['lms', 'studio']:
         print("System must be either lms or studio", file=sys.stderr)
@@ -27,9 +31,10 @@ def run_server(system, settings=None, asset_settings=None, collect_static=False,
 
     if not settings:
         settings = DEFAULT_SETTINGS
+        asset_settings = settings
 
     if asset_settings:
-        args = [system, '--settings={}'.format(asset_settings), '--skip-collect', '--watch']
+        args = [system, '--settings={}'.format(asset_settings), '--watch']
         if not collect_static:
             args.append('--skip-collect')
         call_task('pavelib.assets.update_assets', args=args)
@@ -39,7 +44,7 @@ def run_server(system, settings=None, asset_settings=None, collect_static=False,
 
     args = [settings, 'runserver', '--traceback', '--pythonpath=.', '0.0.0.0:{}'.format(port)]
 
-    if contracts:
+    if not no_contracts:
         args.append("--contracts")
 
     run_process(django_cmd(system, *args))
@@ -49,40 +54,63 @@ def run_server(system, settings=None, asset_settings=None, collect_static=False,
 @needs('pavelib.prereqs.install_prereqs')
 @cmdopts([
     ("settings=", "s", "Django settings"),
+    ("asset-settings=", "a", "Settings file used for updating assets. Defaults to settings if not provided."),
     ("port=", "p", "Port"),
-    ("fast", "f", "Skip updating assets")
+    ("fast", "f", "Skip updating assets"),
+    ("no-contracts", "f", "Disable contracts. By default, they're enabled in devstack."),
 ])
 def lms(options):
     """
     Run the LMS server.
     """
-    settings = getattr(options, 'settings', None)
+    settings = getattr(options, 'settings', DEFAULT_SETTINGS)
+    asset_settings = getattr(options, 'asset-settings', settings)
     port = getattr(options, 'port', None)
     fast = getattr(options, 'fast', False)
-    run_server('lms', settings=settings, asset_settings=None if fast else settings, port=port)
+    collect_static = not fast and asset_settings != settings
+    no_contracts = getattr(options, 'no-contracts', False)
+    run_server(
+        'lms',
+        settings=settings,
+        asset_settings=asset_settings if not fast else None,
+        collect_static=collect_static,
+        port=port,
+        no_contracts=no_contracts
+    )
 
 
 @task
 @needs('pavelib.prereqs.install_prereqs')
 @cmdopts([
     ("settings=", "s", "Django settings"),
+    ("asset-settings=", "a", "Settings file used for updating assets. Defaults to settings if not provided."),
     ("port=", "p", "Port"),
-    ("fast", "f", "Skip updating assets")
+    ("fast", "f", "Skip updating assets"),
+    ("no-contracts", "f", "Disable contracts. By default, they're enabled in devstack."),
 ])
 def studio(options):
     """
     Run the Studio server.
     """
-    settings = getattr(options, 'settings', None)
+    settings = getattr(options, 'settings', DEFAULT_SETTINGS)
+    asset_settings = getattr(options, 'asset-settings', settings)
     port = getattr(options, 'port', None)
     fast = getattr(options, 'fast', False)
-    run_server('studio', settings=settings, asset_settings=None if fast else settings, port=port)
+    collect_static = not fast and asset_settings != settings
+    no_contracts = getattr(options, 'no-contracts', False)
+    run_server(
+        'studio',
+        settings=settings,
+        asset_settings=asset_settings if not fast else None,
+        collect_static=collect_static,
+        port=port,
+        no_contracts=no_contracts
+    )
 
 
 @task
 @needs('pavelib.prereqs.install_prereqs')
 @consume_args
-@no_help
 def devstack(args):
     """
     Start the devstack lms or studio server
@@ -91,7 +119,12 @@ def devstack(args):
     parser.add_argument('system', type=str, nargs=1, help="lms or studio")
     parser.add_argument('--fast', action='store_true', default=False, help="Skip updating assets")
     parser.add_argument('--optimized', action='store_true', default=False, help="Run with optimized assets")
-    parser.add_argument('--settings', type=str, default="devstack", help="Settings file")
+    parser.add_argument('--settings', type=str, default=DEFAULT_SETTINGS, help="Settings file")
+    parser.add_argument(
+        '--asset-settings',
+        type=str,
+        default=None,
+        help="Settings file used for updating assets. Defaults to settings if not provided.")
     parser.add_argument(
         '--no-contracts',
         action='store_true',
@@ -100,18 +133,17 @@ def devstack(args):
     )
     args = parser.parse_args(args)
     settings = args.settings
-    asset_settings = settings
-    collect_static = False
+    asset_settings = args.asset_settings if args.asset_settings else settings
     if args.optimized:
-        settings = "devstack_optimized"
-        asset_settings = "test_static_optimized"
-        collect_static = not args.fast
+        settings = OPTIMIZED_SETTINGS
+        asset_settings = OPTIMIZED_ASSETS_SETTINGS
+    collect_static = not args.fast and asset_settings != settings
     run_server(
         args.system[0],
         settings=settings,
-        asset_settings=asset_settings,
+        asset_settings=asset_settings if not args.fast else None,
         collect_static=collect_static,
-        contracts=(not args.no_contracts),
+        no_contracts=args.no_contracts,
     )
 
 
@@ -132,33 +164,66 @@ def celery(options):
 @needs('pavelib.prereqs.install_prereqs')
 @cmdopts([
     ("settings=", "s", "Django settings for both LMS and Studio"),
+    ("asset_settings=", "a", "Django settings for updating assets for both LMS and Studio (defaults to settings)"),
     ("worker_settings=", "w", "Celery worker Django settings"),
     ("fast", "f", "Skip updating assets"),
+    ("optimized", "f", "Run with optimized assets"),
     ("settings_lms=", "l", "Set LMS only, overriding the value from --settings (if provided)"),
+    ("asset_settings_lms=", "al", "Set LMS only, overriding the value from --asset_settings (if provided)"),
     ("settings_cms=", "c", "Set Studio only, overriding the value from --settings (if provided)"),
+    ("asset_settings_cms=", "ac", "Set Studio only, overriding the value from --asset_settings (if provided)"),
+    ("no_contracts", "f", "Disable contracts. By default, they're enabled in devstack."),
 ])
 def run_all_servers(options):
     """
     Runs Celery workers, Studio, and LMS.
     """
     settings = getattr(options, 'settings', DEFAULT_SETTINGS)
-    settings_lms = getattr(options, 'settings_lms', settings)
-    settings_cms = getattr(options, 'settings_cms', settings)
+    asset_settings = getattr(options, 'asset_settings', settings)
     worker_settings = getattr(options, 'worker_settings', 'dev_with_worker')
     fast = getattr(options, 'fast', False)
+    optimized = getattr(options, 'optimized', False)
+    no_contracts = getattr(options, 'no_contracts', False)
+
+    if optimized:
+        settings = OPTIMIZED_SETTINGS
+        asset_settings = OPTIMIZED_ASSETS_SETTINGS
+
+    settings_lms = getattr(options, 'settings_lms', settings)
+    settings_cms = getattr(options, 'settings_cms', settings)
+    asset_settings_lms = getattr(options, 'asset_settings_lms', asset_settings)
+    asset_settings_cms = getattr(options, 'asset_settings_cms', asset_settings)
+    collect_static = not fast and asset_settings != settings
 
     if not fast:
-        args = ['lms', '--settings={}'.format(settings_lms), '--skip-collect']
+        args = [
+            'lms', 'studio',
+            '--settings={}'.format(asset_settings),
+            '--skip-collect'
+        ]
         call_task('pavelib.assets.update_assets', args=args)
-
-        args = ['studio', '--settings={}'.format(settings_cms), '--skip-collect']
-        call_task('pavelib.assets.update_assets', args=args)
-
+        if collect_static:
+            collect_assets(['lms'], asset_settings_lms)
+            collect_assets(['studio'], asset_settings_cms)
         call_task('pavelib.assets.watch_assets', options={'background': True})
+    lms_port = DEFAULT_PORT['lms']
+    cms_port = DEFAULT_PORT['studio']
+    lms_runserver_args = ["0.0.0.0:{}".format(lms_port)]
+    cms_runserver_args = ["0.0.0.0:{}".format(cms_port)]
+    if not no_contracts:
+        lms_runserver_args.append("--contracts")
+        cms_runserver_args.append("--contracts")
+
     run_multi_processes([
-        django_cmd('lms', settings_lms, 'runserver', '--traceback', '--pythonpath=.', "0.0.0.0:{}".format(DEFAULT_PORT['lms'])),
-        django_cmd('studio', settings_cms, 'runserver', '--traceback', '--pythonpath=.', "0.0.0.0:{}".format(DEFAULT_PORT['studio'])),
-        django_cmd('lms', worker_settings, 'celery', 'worker', '--beat', '--loglevel=INFO', '--pythonpath=.')
+        django_cmd(
+            'lms', settings_lms, 'runserver', '--traceback', '--pythonpath=.', *lms_runserver_args
+        ),
+        django_cmd(
+            'studio', settings_cms, 'runserver', '--traceback', '--pythonpath=.', *cms_runserver_args
+        ),
+        django_cmd(
+            'lms', worker_settings, 'celery', 'worker', '--beat', '--loglevel=INFO', '--pythonpath=.'
+        )
     ])
 
 

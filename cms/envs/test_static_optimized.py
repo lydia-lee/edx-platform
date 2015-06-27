@@ -33,11 +33,11 @@ from .aws import *  # pylint: disable=wildcard-import, unused-wildcard-import
 ######################### Testing overrides ####################################
 
 # Redirects to the test_root folder within the repo
-TEST_ROOT = CONFIG_ROOT.dirname().dirname() / "test_root"  # pylint: disable=no-value-for-parameter
+TEST_ROOT = REPO_ROOT / "test_root"  # pylint: disable=no-value-for-parameter
 LOG_DIR = (TEST_ROOT / "log").abspath()
 
 # Stores the static files under test root so that they don't overwrite existing static assets
-STATIC_ROOT = (TEST_ROOT / "staticfiles").abspath()
+STATIC_ROOT = (TEST_ROOT / "staticfiles" / "cms").abspath()
 
 # Disables uglify when tests are running (used by build.js).
 # 1. Uglify is by far the slowest part of the build process

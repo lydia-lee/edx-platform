@@ -31,7 +31,6 @@ def run_server(system, settings=None, asset_settings=None, collect_static=False,
 
     if not settings:
         settings = DEFAULT_SETTINGS
-        asset_settings = settings
 
     if asset_settings:
         args = [system, '--settings={}'.format(asset_settings), '--watch']
@@ -196,16 +195,23 @@ def run_all_servers(options):
     collect_static = not fast and asset_settings != settings
 
     if not fast:
+        # First update assets for both LMS and Studio but don't collect static yet
         args = [
             'lms', 'studio',
             '--settings={}'.format(asset_settings),
             '--skip-collect'
         ]
+
+        # Now collect static for each system separately with the appropriate settings
         call_task('pavelib.assets.update_assets', args=args)
         if collect_static:
             collect_assets(['lms'], asset_settings_lms)
             collect_assets(['studio'], asset_settings_cms)
+
+        # Install an asset watcher to regenerate files that change
         call_task('pavelib.assets.watch_assets', options={'background': True})
+
+    # Start up LMS, CMS and Celery
     lms_port = DEFAULT_PORT['lms']
     cms_port = DEFAULT_PORT['studio']
     lms_runserver_args = ["0.0.0.0:{}".format(lms_port)]

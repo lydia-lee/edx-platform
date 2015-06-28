@@ -1,7 +1,6 @@
 """Unit tests for the Paver server tasks."""
 
 import ddt
-from mock import patch
 import os
 from paver.easy import call_task
 
